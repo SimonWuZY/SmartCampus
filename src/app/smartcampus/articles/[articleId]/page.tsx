@@ -1,6 +1,6 @@
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import { api } from "../../../../../convex/_generated/api";
+import { Id } from "../../../../../convex/_generated/dataModel";
 import Content from "./article-content";
 import Navbar from "./article-navbar";
 import { ArticleIntroProps } from "@/constants/interfaces";

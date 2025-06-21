@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { UserButton, OrganizationSwitcher } from "@clerk/nextjs";
-import { SearchInputArticles } from "@/app/(home)/search-input-articles";
+import { SearchInputArticles } from "@/app/smartcampus/(home)/search-input-articles";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const HomeNavBar = () => {

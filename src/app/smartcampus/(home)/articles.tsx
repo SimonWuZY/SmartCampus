@@ -8,12 +8,12 @@ import { ArticleProps } from '@/constants/interfaces';
 const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
     const router = useRouter();
 
-    const handleClick = () => {
-        router.push(`/articles/${article.id}`);
+    const handleEnterArticlesClick = () => {
+        router.push(`/smartcampus/articles/${article.id}`);
     };
 
     return (
-        <Card onClick={handleClick} style={{ width: '100%', height: 'auto', position: 'relative', padding: '16px', cursor: 'pointer' }}>
+        <Card onClick={handleEnterArticlesClick} style={{ width: '100%', height: 'auto', position: 'relative', padding: '16px', cursor: 'pointer' }}>
             <CardHeader>
                 <CardTitle>{article.title}</CardTitle>
             </CardHeader>

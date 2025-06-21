@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import HomeNavBar from "./home-navbar";
 import BottomNavBar from "@/components/bottom-narbar";
 import ArticlesOverview from "./articles";
-import { fetchArticles } from "../api/servers/indexFetch";
+import { fetchArticles } from "../../api/servers/indexFetch";
 import { ArticleProps } from '@/constants/interfaces';
 
 const HomePage = () => {

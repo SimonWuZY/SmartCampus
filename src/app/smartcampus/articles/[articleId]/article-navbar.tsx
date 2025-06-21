@@ -7,7 +7,7 @@ const Navbar = () => {
     const router = useRouter();
 
     const handleBack = () => {
-        router.push('/');
+        router.push('/smartcampus');
     };
 
     const handleShare = () => {
