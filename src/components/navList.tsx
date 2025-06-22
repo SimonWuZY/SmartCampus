@@ -1,20 +1,28 @@
-import { useRouter } from "next/navigation";
+import {
+    NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle,
+} from "./ui/navigation-menu";
+import Link from "next/link";
 
 export const NavList = () => {
-    const router = useRouter();
-
 
     return (
-        <div>
-            <span onClick={() => router.push("/smartcampus/documents")}>
-                文档
-            </span>
-            <span onClick={() => router.push("/smartcampus/")}>
-                文章
-            </span>
-            <span onClick={() => router.push("/smartcampus/chat")}>
-                问答
-            </span>
-        </div>
-    )
+        <NavigationMenu>
+            <NavigationMenuList>
+                <NavigationMenuItem>
+                    <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                        <Link href="smartcampus/documents">协同文档</Link>
+                    </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                        <Link href="smartcampus/">文章推送</Link>
+                    </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                    <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                        <Link href="smartcampus/chat">智能助手</Link>
+                    </NavigationMenuLink>
+                </NavigationMenuItem>
+            </NavigationMenuList>
+        </NavigationMenu>)
 }

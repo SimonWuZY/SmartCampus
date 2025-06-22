@@ -4,6 +4,7 @@ import Image from "next/image";
 import { UserButton, OrganizationSwitcher } from "@clerk/nextjs";
 import { SearchInputArticles } from "@/app/smartcampus/(home)/search-input-articles";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { NavList } from "@/components/navList";
 
 const HomeNavBar = () => {
     const isMobile = useIsMobile();
@@ -26,6 +27,7 @@ const HomeNavBar = () => {
                 </Link>
                 <h3 className="text-xl">智合校园</h3>
             </div>
+            <NavList></NavList>
             <SearchInputArticles />
             <div className="flex gap-3 items-center pl-6">
                 <OrganizationSwitcher
