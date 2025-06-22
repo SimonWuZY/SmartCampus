@@ -20,7 +20,7 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import { useMutation } from "convex/react"
-import { api } from "../../../../convex/_generated/api"
+import { api } from "../../../../../convex/_generated/api"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { RemoveDialog } from "@/components/remove-dialog"
@@ -44,7 +44,7 @@ import { BsFilePdf } from "react-icons/bs"
 import { useEditorStore } from "@/store/use-editor-store"
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs"
 import { Inbox } from "./inbox"
-import { Doc } from "../../../../convex/_generated/dataModel"
+import { Doc } from "../../../../../convex/_generated/dataModel"
 
 
 interface NavBarProps {

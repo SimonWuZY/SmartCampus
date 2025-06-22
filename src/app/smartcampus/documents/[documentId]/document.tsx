@@ -5,7 +5,7 @@ import { Editor } from "./editor";
 import { NavBar } from "./navbar";
 import { Room } from "./room";
 import { Toolbar } from "./toolbar";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 interface DocumentProps {
     preloadedDocument: Preloaded<typeof api.documents.getDocumentById>
 };

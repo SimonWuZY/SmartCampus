@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/carousel";
 import { templates } from "@/constants/templates";
 import { cn } from "@/lib/utils";
-import { api } from "../../../convex/_generated/api";
+import { api } from "../../../../convex/_generated/api";
 import { toast } from "sonner";
 import { OrganizationSwitcher } from "@clerk/nextjs";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,7 +28,7 @@ export const TemplatesGallery = () => {
         createDocument({ title, initialContent })
             .catch(() => toast.error("出现了一些问题"))
             .then((documentId) => {
-                router.push(`/documents/${documentId}`);
+                router.push(`/smartcampus/documents/${documentId}`);
                 toast.success("文档创建成功！");
             })
             .finally(() => {
