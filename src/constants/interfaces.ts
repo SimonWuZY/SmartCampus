@@ -13,3 +13,13 @@ export interface ArticleProps {
     cover?: string;
     content: string;
 }
+
+export enum NavListEnum {
+    DOCUMENTS = "协同文档",
+    ARTICLES = "文章推送",
+    CHAT = "智能助手",
+}
+
+export interface NavListProps {
+    searchItem: NavListEnum;
+}

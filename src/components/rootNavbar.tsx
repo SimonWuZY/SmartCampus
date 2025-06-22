@@ -5,8 +5,9 @@ import { UserButton, OrganizationSwitcher } from "@clerk/nextjs";
 import { SearchInputArticles } from "@/app/smartcampus/(home)/search-input-articles";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { NavList } from "@/components/navList";
+import { NavListProps } from "@/constants/interfaces";
 
-const HomeNavBar = () => {
+const RootNavBar = ({searchItem}: NavListProps) => {
     const isMobile = useIsMobile();
     if (isMobile) {
         return (
@@ -27,8 +28,10 @@ const HomeNavBar = () => {
                 </Link>
                 <h3 className="text-xl">智合校园</h3>
             </div>
-            <NavList></NavList>
-            <SearchInputArticles />
+            <div className="w-full mx-8">
+                <NavList searchItem={searchItem}></NavList>
+            </div>
+
             <div className="flex gap-3 items-center pl-6">
                 <OrganizationSwitcher
                     afterCreateOrganizationUrl="/"
@@ -40,4 +43,4 @@ const HomeNavBar = () => {
             </div>
         </nav>);
 }
-export default HomeNavBar;
+export default RootNavBar;

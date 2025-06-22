@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import HomeNavBar from "./home-navbar";
+import { NavListEnum } from "@/constants/interfaces";
 import BottomNavBar from "@/components/bottom-narbar";
 import ArticlesOverview from "./articles";
 import { fetchArticles } from "../../api/servers/indexFetch";
 import { ArticleProps } from '@/constants/interfaces';
+import RootNavBar from "@/components/rootNavbar";
 
 const HomePage = () => {
   const [articles, setArticles] = useState<ArticleProps[]>(); // 用于存储文章数据
@@ -33,7 +34,8 @@ const HomePage = () => {
     <div className="min-h-screen flex flex-col">
       {/* 顶部导航栏 */}
       <div className="fixed top-0 left-0 right-0 z-10 h-16 bg-white p-4 shadow-md">
-        <HomeNavBar />
+        {/* <HomeNavBar /> */}
+        <RootNavBar searchItem={NavListEnum.ARTICLES}></RootNavBar>
       </div>
 
       {/* 主内容区域 */}
