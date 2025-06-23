@@ -96,7 +96,7 @@ export const Ruler = () => {
             onTouchMove={handleMouseMove}
             onTouchEnd={handleMouseUp}
             onTouchStart={(e) => e.preventDefault()} // 阻止默认的屏幕滑动事件
-            className="w-[816px] mx-auto h-6 border-b border-gray-300 flex items-end relative select-none print:hidden">
+            className="w-[816px] mt-4 mx-auto h-6 border-b border-gray-300 flex items-end relative select-none print:hidden">
             <div
                 id="ruler-container"
                 className="w-full h-full relative"

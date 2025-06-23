@@ -41,6 +41,9 @@ const HomePage = () => {
 
       {/* 主内容区域 */}
       <div className="mt-16 p-4 flex-1 flex justify-center">
+        <div>
+          {/* <SideNavigatar /> */}
+        </div>
         <div className="w-full max-w-[50vw] min-w-[320px] max-w-2xl">
           {loading && <FullscreenLoader label="文章拼命加载中..." />}
           {error && <p className="text-red-500 text-center">{error}</p>}

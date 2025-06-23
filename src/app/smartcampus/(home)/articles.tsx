@@ -15,7 +15,7 @@ const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
     return (
         <Card 
             onClick={handleEnterArticlesClick} 
-            className="w-full h-auto relative p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
+            className="w-full h-150 relative p-1 cursor-pointer hover:shadow-lg transition-shadow duration-200"
         >
             <CardHeader>
                 <CardTitle className="text-lg font-semibold">{article.title}</CardTitle>
