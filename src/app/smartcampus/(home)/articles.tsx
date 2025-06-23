@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThumbsUp, MessageCircle } from 'lucide-react';
 import { ArticleProps } from '@/constants/interfaces';
+import { SideNavigatar } from './side-navigatar';
 
 const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
     const router = useRouter();
@@ -13,9 +14,9 @@ const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
     };
 
     return (
-        <Card 
-            onClick={handleEnterArticlesClick} 
-            className="w-full h-150 relative p-1 cursor-pointer hover:shadow-lg transition-shadow duration-200"
+        <Card
+            onClick={handleEnterArticlesClick}
+            className="w-full h-36 relative p-1 cursor-pointer hover:shadow-lg transition-shadow duration-200"
         >
             <CardHeader>
                 <CardTitle className="text-lg font-semibold">{article.title}</CardTitle>
@@ -32,9 +33,9 @@ const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
                     </div>
                 </div>
                 {article.cover && (
-                    <img 
-                        src={article.cover} 
-                        alt="cover" 
+                    <img
+                        src={article.cover}
+                        alt="cover"
                         className="w-24 h-auto rounded-lg absolute top-4 right-4 object-cover"
                     />
                 )}
@@ -45,14 +46,27 @@ const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
 
 const ArticlesOverview: React.FC<{ articles?: ArticleProps[] }> = ({ articles }) => {
     return (
-        <div className="flex flex-col">
-            {articles && articles.length > 0 ? (
-                articles.map(article => (
-                    <ArticleCard key={article.id} article={article} />
-                ))
-            ) : (
-                <p className="text-center text-gray-500">暂无文章</p>
-            )}
+        <div className="relative w-full min-h-screen flex flex-row">
+            {/* 左侧导航栏 */}
+            <div className="sticky top-4 h-screen flex items-center justify-center w-32">
+                <SideNavigatar />
+            </div>
+
+            {/* 中间文章区域 */}
+            <div className="flex-1 flex flex-col gap-4 px-8">
+                {articles && articles.length > 0 ? (
+                    articles.map(article => (
+                        <ArticleCard key={article.id} article={article} />
+                    ))
+                ) : (
+                    <p className="text-center text-gray-500 mt-8">暂无文章</p>
+                )}
+            </div>
+
+            {/* 右侧导航栏 */}
+            <div className="sticky top-4 h-screen flex items-center justify-center w-32">
+                <SideNavigatar />
+            </div>
         </div>
     );
 };
