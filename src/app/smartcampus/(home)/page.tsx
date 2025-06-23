@@ -7,6 +7,7 @@ import ArticlesOverview from "./articles";
 import { fetchArticles } from "../../api/servers/indexFetch";
 import { ArticleProps } from '@/constants/interfaces';
 import RootNavBar from "@/components/rootNavbar";
+import { FullscreenLoader } from "@/components/fullscreen-loader";
 
 const HomePage = () => {
   const [articles, setArticles] = useState<ArticleProps[]>(); // 用于存储文章数据
@@ -39,10 +40,12 @@ const HomePage = () => {
       </div>
 
       {/* 主内容区域 */}
-      <div className="mt-16 p-4 flex-1">
-        {loading && <p>Loading articles...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-        {!loading && !error && <ArticlesOverview articles={articles} />}
+      <div className="mt-16 p-4 flex-1 flex justify-center">
+        <div className="w-full max-w-[50vw] min-w-[320px] max-w-2xl">
+          {loading && <FullscreenLoader label="文章拼命加载中..." />}
+          {error && <p className="text-red-500 text-center">{error}</p>}
+          {!loading && !error && <ArticlesOverview articles={articles} />}
+        </div>
       </div>
 
       {/* 底部导航栏 */}

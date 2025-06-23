@@ -2,7 +2,7 @@
 import React from 'react';
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ThumbsUp, MessageCircle } from 'lucide-react'; // Importing icons from lucide-react
+import { ThumbsUp, MessageCircle } from 'lucide-react';
 import { ArticleProps } from '@/constants/interfaces';
 
 const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
@@ -13,15 +13,18 @@ const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
     };
 
     return (
-        <Card onClick={handleEnterArticlesClick} style={{ width: '100%', height: 'auto', position: 'relative', padding: '16px', cursor: 'pointer' }}>
+        <Card 
+            onClick={handleEnterArticlesClick} 
+            className="w-full h-auto relative p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200"
+        >
             <CardHeader>
-                <CardTitle>{article.title}</CardTitle>
+                <CardTitle className="text-lg font-semibold">{article.title}</CardTitle>
             </CardHeader>
             <CardContent>
-                <div style={{ overflow: 'hidden' }}>
-                    <p>{article.introduction.author}</p>
-                    <p>{article.introduction.label}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="overflow-hidden">
+                    <p className="text-sm text-gray-600 mb-1">{article.introduction.author}</p>
+                    <p className="text-sm text-gray-500 mb-2">{article.introduction.label}</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
                         <ThumbsUp size={16} />
                         <span>{article.introduction.likeNumber}</span>
                         <MessageCircle size={16} />
@@ -29,7 +32,11 @@ const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
                     </div>
                 </div>
                 {article.cover && (
-                    <img src={article.cover} alt="cover" style={{ width: '100px', height: 'auto', borderRadius: '8px', position: 'absolute', top: '16px', right: '16px' }} />
+                    <img 
+                        src={article.cover} 
+                        alt="cover" 
+                        className="w-24 h-auto rounded-lg absolute top-4 right-4 object-cover"
+                    />
                 )}
             </CardContent>
         </Card>
@@ -38,13 +45,13 @@ const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
 
 const ArticlesOverview: React.FC<{ articles?: ArticleProps[] }> = ({ articles }) => {
     return (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1px' }}>
+        <div className="flex flex-col">
             {articles && articles.length > 0 ? (
                 articles.map(article => (
                     <ArticleCard key={article.id} article={article} />
                 ))
             ) : (
-                <p>No articles available.</p>
+                <p className="text-center text-gray-500">暂无文章</p>
             )}
         </div>
     );
