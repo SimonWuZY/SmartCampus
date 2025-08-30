@@ -13,11 +13,12 @@ const ChatPage = () => {
     const [content, setContent] = useState('');
     const [isCentered, setIsCentered] = useState(true);
 
-    // 模型输出函数
+    // 本地 LLM 服务
     const [agent] = useXAgent({
-        request: async ({ message }, { onSuccess, onUpdate }) => {
+        request: async ({ message }, { onSuccess, onUpdate, onError }) => {
             try {
-                const response = await fetch('http://39.105.11.179:5000/chat/public', {
+                // 使用本地 Next.js API 路由
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -26,26 +27,48 @@ const ChatPage = () => {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(`服务响应错误: ${response.status}`);
                 }
+                
                 const data = await response.json();
-                console.log(data);
+                console.log('本地 LLM 响应:', {
+                    topic: data.topic,
+                    confidence: data.confidence,
+                    timestamp: data.timestamp
+                });
 
-                const fullContent = data.reply; // 确保访问的是 `reply` 字段
+                const fullContent = data.reply;
                 let currentContent = '';
 
+                // 优化的打字机效果
+                const typingSpeed = 30; // 更快的打字速度
+                const charsPerStep = Math.max(1, Math.floor(fullContent.length / 100)); // 动态调整每步字符数
+                
                 const id = setInterval(() => {
-                    currentContent = fullContent.slice(0, currentContent.length + 2);
+                    const nextLength = Math.min(
+                        fullContent.length, 
+                        currentContent.length + charsPerStep
+                    );
+                    currentContent = fullContent.slice(0, nextLength);
                     onUpdate(currentContent);
 
                     if (currentContent === fullContent) {
                         clearInterval(id);
                         onSuccess(fullContent);
                     }
-                }, 100);
+                }, typingSpeed);
+                
             } catch (error) {
-                console.error('Error fetching the response:', error);
-                onSuccess('Error fetching the response');
+                console.error('本地 LLM 服务错误:', error);
+                const errorMessage = error instanceof Error 
+                    ? `服务错误: ${error.message}` 
+                    : '抱歉，服务暂时不可用，请稍后再试。';
+                
+                if (onError) {
+                    onError(new Error(errorMessage));
+                } else {
+                    onSuccess(errorMessage);
+                }
             }
         },
     });
