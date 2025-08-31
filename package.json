@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@ant-design/x": "^1.0.4",
+    "@anthropic-ai/sdk": "^0.60.0",
     "@clerk/nextjs": "^6.5.1",
     "@hookform/resolvers": "^3.9.1",
     "@liveblocks/client": "^2.12.2",
@@ -83,6 +84,7 @@
     "next-docs": "file:",
     "next-themes": "^0.4.4",
     "nuqs": "^2.2.3",
+    "openai": "^5.16.0",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-color": "^2.19.3",
     "react-day-picker": "^8.10.1",

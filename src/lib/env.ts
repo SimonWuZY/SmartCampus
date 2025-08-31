@@ -43,7 +43,9 @@ export function getLLMConfig() {
     maxTokens: parseInt(process.env.LLM_MAX_TOKENS || '2000'),
     temperature: parseFloat(process.env.LLM_TEMPERATURE || '0.7'),
     typingSpeed: parseInt(process.env.LLM_TYPING_SPEED || '30'),
-    debug: process.env.DEBUG_LLM === 'true'
+    debug: process.env.DEBUG_LLM === 'true',
+    provider: process.env.LLM_PROVIDER || 'deepseek',
+    hasApiKey: !!(process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY)
   };
 }
 
@@ -56,6 +58,7 @@ type LogData =
   | undefined
   | Record<string, unknown>
   | Array<unknown>
+  | unknown
   | Error;
 
 // 日志工具

@@ -9,7 +9,9 @@ const RootPage = () => {
     router.push('/smartcampus');
   }, [router]);
 
-  return <div>正在进入智合校园...</div>;
+  return <div
+   className='flex justify-center items-center'
+  >正在进入智合校园...</div>;
 };
 
 export default RootPage; 
