@@ -7,7 +7,9 @@ import React, { useState, useEffect } from 'react';
 import CenteredProps from "./center-props";
 import EnhancedChatMessages from "@/components/enhanced-chat-message";
 import ChatInput from "./chat-input";
-import { ChatNavBar } from "./chat-navbar";
+// import { ChatNavBar } from "./chat-navbar";
+import { NavListEnum } from "@/constants/interfaces";
+import RootNavBar from "@/components/rootNavbar";
 
 const ChatPage = () => {
     const [content, setContent] = useState('');
@@ -29,9 +31,9 @@ const ChatPage = () => {
                 if (!response.ok) {
                     throw new Error(`服务响应错误: ${response.status}`);
                 }
-                
+
                 const data = await response.json();
-                console.log('本地 LLM 响应:', {
+                console.log('LLM 响应:', {
                     topic: data.topic,
                     confidence: data.confidence,
                     timestamp: data.timestamp
@@ -43,10 +45,10 @@ const ChatPage = () => {
                 // 优化的打字机效果
                 const typingSpeed = 30; // 更快的打字速度
                 const charsPerStep = Math.max(1, Math.floor(fullContent.length / 100)); // 动态调整每步字符数
-                
+
                 const id = setInterval(() => {
                     const nextLength = Math.min(
-                        fullContent.length, 
+                        fullContent.length,
                         currentContent.length + charsPerStep
                     );
                     currentContent = fullContent.slice(0, nextLength);
@@ -57,13 +59,13 @@ const ChatPage = () => {
                         onSuccess(fullContent);
                     }
                 }, typingSpeed);
-                
+
             } catch (error) {
                 console.error('本地 LLM 服务错误:', error);
-                const errorMessage = error instanceof Error 
-                    ? `服务错误: ${error.message}` 
+                const errorMessage = error instanceof Error
+                    ? `服务错误: ${error.message}`
                     : '抱歉，服务暂时不可用，请稍后再试。';
-                
+
                 if (onError) {
                     onError(new Error(errorMessage));
                 } else {
@@ -73,7 +75,6 @@ const ChatPage = () => {
         },
     });
 
-    // Chat messages
     const { onRequest, messages } = useXChat({
         agent,
     });
@@ -92,8 +93,8 @@ const ChatPage = () => {
 
     return (
         <div className="h-screen flex flex-col">
-            <div>
-                <ChatNavBar />
+            <div className="fixed top-0 left-0 right-0 z-10 h-16 bg-white p-4 shadow-md">
+                <RootNavBar searchItem={NavListEnum.CHAT}></RootNavBar>
             </div>
             <Flex vertical gap="middle" className={`flex-1 ${isCentered ? 'justify-center' : 'justify-start'}`}>
                 {isCentered && <CenteredProps onPromptClick={handlePromptClick} />}

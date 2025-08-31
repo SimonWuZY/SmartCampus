@@ -1,11 +1,11 @@
 import { SearchInputArticles } from "@/app/smartcampus/(home)/search-input-articles";
 import { SearchInput } from "@/app/smartcampus/documents/search-input";
-import ChatInput from "@/app/smartcampus/chat/chat-input";
 import {
     NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle,
 } from "./ui/navigation-menu";
 import Link from "next/link";
 import { NavListEnum, NavListProps } from "@/constants/interfaces";
+import { SearchChats } from "@/app/smartcampus/chat/search-chats";
 
 // 渲染搜索组件的函数
 const renderSearchComponent = (searchItem: NavListEnum) => {
@@ -15,15 +15,7 @@ const renderSearchComponent = (searchItem: NavListEnum) => {
         case NavListEnum.DOCUMENTS:
             return <SearchInput />;
         case NavListEnum.CHAT:
-            return (
-                <ChatInput
-                    content=""
-                    isCentered={false}
-                    agent={{ isRequesting: () => false }}
-                    onRequest={() => {}}
-                    setContent={() => {}}
-                />
-            );
+            return <SearchChats />;
         default:
             return <SearchInputArticles />;
     }
