@@ -42,7 +42,12 @@ export class ArticleService {
       console.log('[ArticleService] 开始从API获取文章数据...');
       
       // 调用Convex API获取文章
-      const response = await fetch('/api/articles/all', {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const apiUrl = `${baseUrl}/api/articles/all`;
+      
+      console.log('[ArticleService] 调用API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -10,7 +10,7 @@ const RootPage = () => {
   }, [router]);
 
   return <div
-   className='flex justify-center items-center'
+   className='min-h-screen flex flex-col items-center justify-center'
   >正在进入智合校园...</div>;
 };
 

@@ -2,7 +2,9 @@ import { getDefaultLLMConfig, knowledgeBase, detectTopic } from './llm-config';
 import { debugLog } from './env';
 import { DeepSeekProvider, createDeepSeekConfig } from './ai-providers-simple';
 import { ArticleSearchTool, ArticleSearchResult } from './article-search-tool';
-import { articleService } from './article-service';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../../convex/_generated/api';
+import { ArticleProps } from '@/constants/interfaces';
 
 // 对话历史接口
 export interface ConversationEntry {
@@ -58,7 +60,7 @@ export class LocalLLMService {
   };
 
   private generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   private initializeAIProvider(): void {
@@ -92,6 +94,29 @@ ${knowledgeBase.contexts[topic] || knowledgeBase.contexts.general}`;
     return basePrompt;
   }
 
+  // 直接从Convex获取文章数据
+  private async getArticlesFromConvex(): Promise<ArticleProps[]> {
+    try {
+      if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
+        console.error('[LLMService] Convex URL not configured');
+        return [];
+      }
+
+      const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL);
+      const articles = await convex.query(api.articles.getAllArticles);
+      
+      console.log('[LLMService] 直接从Convex获取文章:', {
+        count: articles?.length || 0,
+        articles: articles?.map(a => ({ id: a.id, title: a.title })) || []
+      });
+      
+      return articles || [];
+    } catch (error) {
+      console.error('[LLMService] 从Convex获取文章失败:', error);
+      return [];
+    }
+  }
+
   // 搜索相关文章
   private async searchRelevantArticles(query: string): Promise<ArticleSearchResult[]> {
     console.log('[LLMService] 开始文章检索流程', { query: query.substring(0, 100) });
@@ -101,14 +126,32 @@ ${knowledgeBase.contexts[topic] || knowledgeBase.contexts.general}`;
       const shouldSearch = this.articleSearchTool.shouldSearchArticles(query);
       console.log('[LLMService] 检查是否需要搜索文章:', { shouldSearch, query: query.substring(0, 50) });
       
-      if (!shouldSearch) {
+      // 开发环境调试模式 - 总是尝试搜索
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      const debugMode = process.env.DEBUG_LLM === 'true';
+      
+      // 临时强制搜索模式 - 用于调试
+      const forceSearch = query.includes('查询') || query.includes('文章') || query.includes('高数') || 
+                         query.includes('检索') || query.includes('笔记') || query.includes('数学');
+      
+      const finalShouldSearch = shouldSearch || forceSearch || (isDevelopment && debugMode);
+      
+      console.log('[LLMService] 搜索决策:', { 
+        shouldSearch, 
+        forceSearch, 
+        isDevelopment, 
+        debugMode,
+        finalShouldSearch 
+      });
+      
+      if (!finalShouldSearch) {
         console.log('[LLMService] 查询不需要文章搜索，跳过');
         return [];
       }
 
       console.log('[LLMService] 开始获取文章数据...');
-      // 获取最新文章数据
-      const articles = await articleService.getAllArticles();
+      // 直接从Convex获取文章数据，避免HTTP请求问题
+      const articles = await this.getArticlesFromConvex();
       console.log('[LLMService] 获取到文章数据:', { count: articles.length });
       
       // 更新搜索工具的文章数据

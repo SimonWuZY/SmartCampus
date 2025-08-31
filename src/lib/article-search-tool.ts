@@ -29,11 +29,78 @@ export class ArticleSearchTool {
     // 移除标点符号并转换为小写
     const cleanText = text.toLowerCase().replace(/[^\w\s\u4e00-\u9fff]/g, ' ');
     
-    // 分词（简单的空格分割，实际项目中可以使用更复杂的中文分词）
-    const words = cleanText.split(/\s+/).filter(word => word.length > 1);
+    // 中文分词 - 简单实现
+    const chineseWords = this.extractChineseKeywords(cleanText);
     
-    // 去重
-    return [...new Set(words)];
+    // 英文分词
+    const englishWords = cleanText.split(/\s+/).filter(word => 
+      word.length > 1 && /^[a-zA-Z]+$/.test(word)
+    );
+    
+    // 合并并去重
+    const allWords = [...chineseWords, ...englishWords];
+    return [...new Set(allWords)];
+  }
+
+  // 简单的中文关键词提取
+  private extractChineseKeywords(text: string): string[] {
+    const keywords: string[] = [];
+    
+    // 预定义的重要词汇
+    const importantTerms = [
+      '高等数学', '高数', '数学', '微积分', '线性代数', '概率论', '统计学',
+      '前端开发', '后端开发', '编程', '算法', '数据结构',
+      '学习', '复习', '笔记', '教程', '指南', '方法',
+      '文章', '资料', '材料', '内容'
+    ];
+    
+    // 检查重要词汇
+    importantTerms.forEach(term => {
+      if (text.includes(term)) {
+        keywords.push(term);
+      }
+    });
+    
+    // 简单的双字词提取
+    for (let i = 0; i < text.length - 1; i++) {
+      const twoChar = text.substring(i, i + 2);
+      if (/^[\u4e00-\u9fff]{2}$/.test(twoChar)) {
+        keywords.push(twoChar);
+      }
+    }
+    
+    // 简单的三字词提取
+    for (let i = 0; i < text.length - 2; i++) {
+      const threeChar = text.substring(i, i + 3);
+      if (/^[\u4e00-\u9fff]{3}$/.test(threeChar)) {
+        keywords.push(threeChar);
+      }
+    }
+    
+    return [...new Set(keywords)];
+  }
+
+  // 检查两个词是否相似（处理同义词）
+  private isSimilarWord(word1: string, word2: string): boolean {
+    const synonyms = {
+      '高数': ['高等数学', '数学', '微积分'],
+      '高等数学': ['高数', '数学', '微积分'],
+      '数学': ['高数', '高等数学', '微积分'],
+      '复习': ['学习', '笔记', '教程'],
+      '学习': ['复习', '笔记', '教程'],
+      '笔记': ['复习', '学习', '教程'],
+      '前端': ['前端开发', 'frontend', 'web开发'],
+      '前端开发': ['前端', 'frontend', 'web开发']
+    };
+
+    // 检查直接匹配
+    if (word1 === word2) return true;
+    
+    // 检查同义词匹配
+    const word1Synonyms = synonyms[word1] || [];
+    const word2Synonyms = synonyms[word2] || [];
+    
+    return word1Synonyms.includes(word2) || word2Synonyms.includes(word1);
   }
 
   // 计算文本相似度
@@ -56,29 +123,43 @@ export class ArticleSearchTool {
     let score = 0;
     const matchedKeywords: string[] = [];
 
-    // 计算匹配度
+      // 计算匹配度
     queryKeywords.forEach(queryWord => {
+      let matched = false;
+      
       // 标题匹配权重最高
       if (titleKeywords.some(titleWord => 
-        titleWord.includes(queryWord) || queryWord.includes(titleWord)
+        titleWord.includes(queryWord) || queryWord.includes(titleWord) ||
+        this.isSimilarWord(queryWord, titleWord)
       )) {
         score += 3;
         matchedKeywords.push(queryWord);
+        matched = true;
       }
       // 标签匹配权重中等
       else if (labelKeywords.some(labelWord => 
-        labelWord.includes(queryWord) || queryWord.includes(labelWord)
+        labelWord.includes(queryWord) || queryWord.includes(labelWord) ||
+        this.isSimilarWord(queryWord, labelWord)
       )) {
         score += 2;
         matchedKeywords.push(queryWord);
+        matched = true;
       }
       // 内容匹配权重较低
       else if (contentKeywords.some(contentWord => 
-        contentWord.includes(queryWord) || queryWord.includes(contentWord)
+        contentWord.includes(queryWord) || queryWord.includes(contentWord) ||
+        this.isSimilarWord(queryWord, contentWord)
       )) {
         score += 1;
         matchedKeywords.push(queryWord);
+        matched = true;
       }
+      
+      console.log(`[ArticleSearchTool] 关键词匹配检查: "${queryWord}"`, {
+        titleKeywords: titleKeywords.slice(0, 5),
+        labelKeywords: labelKeywords.slice(0, 5),
+        matched
+      });
     });
 
     // 标准化分数 (0-1)
@@ -124,12 +205,12 @@ export class ArticleSearchTool {
         label: article.introduction?.label,
         score: score.toFixed(3),
         matchedKeywords,
-        threshold: 0.1,
-        willInclude: score > 0.1
+        threshold: 0.05,
+        willInclude: score > 0.05
       });
       
       // 只返回有一定相关性的文章（阈值可调整）
-      if (score > 0.1) {
+      if (score > 0.05) {
         results.push({
           article,
           relevanceScore: score,
@@ -180,22 +261,53 @@ export class ArticleSearchTool {
 
   // 检查查询是否需要文章推荐
   shouldSearchArticles(query: string): boolean {
+    // 扩展触发词列表
     const searchTriggers = [
-      '推荐', '文章', '学习', '复习', '教程', '指南', '方法',
-      '如何', '怎么', '什么是', '告诉我', '介绍', '解释',
-      '高数', '数学', '编程', '算法', '前端', '后端'
+      // 动作词
+      '推荐', '文章', '学习', '复习', '教程', '指南', '方法', '查询', '检索', '搜索', '找', '寻找',
+      '如何', '怎么', '什么是', '告诉我', '介绍', '解释', '有关', '关于', '相关',
+      // 学科词
+      '高数', '数学', '编程', '算法', '前端', '后端', '高等数学', '微积分', '线性代数',
+      // 内容词
+      '笔记', '资料', '材料', '内容'
     ];
 
     const lowerQuery = query.toLowerCase();
-    const matchedTriggers = searchTriggers.filter(trigger => 
-      lowerQuery.includes(trigger) || lowerQuery.includes(trigger.toLowerCase())
+    
+    // 检查直接匹配
+    const directMatches = searchTriggers.filter(trigger => 
+      lowerQuery.includes(trigger)
     );
     
-    const shouldSearch = matchedTriggers.length > 0;
+    // 检查模式匹配
+    const patterns = [
+      /.*文章.*/, // 包含"文章"
+      /.*笔记.*/, // 包含"笔记"
+      /.*学习.*/, // 包含"学习"
+      /.*复习.*/, // 包含"复习"
+      /.*高数.*/, // 包含"高数"
+      /.*数学.*/, // 包含"数学"
+      /.*检索.*/, // 包含"检索"
+      /.*查询.*/, // 包含"查询"
+      /.*推荐.*/, // 包含"推荐"
+    ];
+    
+    const patternMatches = patterns.filter(pattern => pattern.test(lowerQuery));
+    
+    // 如果查询长度较长且包含问号或疑问词，也触发搜索
+    const isQuestion = lowerQuery.includes('?') || lowerQuery.includes('？') || 
+                      lowerQuery.includes('什么') || lowerQuery.includes('如何') || 
+                      lowerQuery.includes('怎么');
+    
+    const shouldSearch = directMatches.length > 0 || patternMatches.length > 0 || 
+                        (isQuestion && lowerQuery.length > 10);
     
     console.log('[ArticleSearchTool] 检查是否需要搜索:', {
-      query: query.substring(0, 50),
-      matchedTriggers,
+      query: query.substring(0, 100),
+      lowerQuery: lowerQuery.substring(0, 100),
+      directMatches,
+      patternMatches: patternMatches.map(p => p.source),
+      isQuestion,
       shouldSearch
     });
     
