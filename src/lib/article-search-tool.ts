@@ -28,15 +28,15 @@ export class ArticleSearchTool {
   private extractKeywords(text: string): string[] {
     // 移除标点符号并转换为小写
     const cleanText = text.toLowerCase().replace(/[^\w\s\u4e00-\u9fff]/g, ' ');
-    
+
     // 中文分词 - 简单实现
     const chineseWords = this.extractChineseKeywords(cleanText);
-    
+
     // 英文分词
-    const englishWords = cleanText.split(/\s+/).filter(word => 
+    const englishWords = cleanText.split(/\s+/).filter(word =>
       word.length > 1 && /^[a-zA-Z]+$/.test(word)
     );
-    
+
     // 合并并去重
     const allWords = [...chineseWords, ...englishWords];
     return [...new Set(allWords)];
@@ -45,7 +45,7 @@ export class ArticleSearchTool {
   // 简单的中文关键词提取
   private extractChineseKeywords(text: string): string[] {
     const keywords: string[] = [];
-    
+
     // 预定义的重要词汇
     const importantTerms = [
       '高等数学', '高数', '数学', '微积分', '线性代数', '概率论', '统计学',
@@ -53,14 +53,14 @@ export class ArticleSearchTool {
       '学习', '复习', '笔记', '教程', '指南', '方法',
       '文章', '资料', '材料', '内容'
     ];
-    
+
     // 检查重要词汇
     importantTerms.forEach(term => {
       if (text.includes(term)) {
         keywords.push(term);
       }
     });
-    
+
     // 简单的双字词提取
     for (let i = 0; i < text.length - 1; i++) {
       const twoChar = text.substring(i, i + 2);
@@ -68,7 +68,7 @@ export class ArticleSearchTool {
         keywords.push(twoChar);
       }
     }
-    
+
     // 简单的三字词提取
     for (let i = 0; i < text.length - 2; i++) {
       const threeChar = text.substring(i, i + 3);
@@ -76,30 +76,35 @@ export class ArticleSearchTool {
         keywords.push(threeChar);
       }
     }
-    
+
     return [...new Set(keywords)];
   }
 
+  // 同义词映射 - 提取为类属性以便复用和维护
+  private readonly synonymsMap: Record<string, readonly string[]> = {
+    '高数': ['高等数学', '数学', '微积分'],
+    '高等数学': ['高数', '数学', '微积分'],
+    '数学': ['高数', '高等数学', '微积分'],
+    '复习': ['学习', '笔记', '教程'],
+    '学习': ['复习', '笔记', '教程'],
+    '笔记': ['复习', '学习', '教程'],
+    '前端': ['前端开发', 'frontend', 'web开发'],
+    '前端开发': ['前端', 'frontend', 'web开发']
+  } as const;
+
   // 检查两个词是否相似（处理同义词）
   private isSimilarWord(word1: string, word2: string): boolean {
-    const synonyms = {
-      '高数': ['高等数学', '数学', '微积分'],
-      '高等数学': ['高数', '数学', '微积分'],
-      '数学': ['高数', '高等数学', '微积分'],
-      '复习': ['学习', '笔记', '教程'],
-      '学习': ['复习', '笔记', '教程'],
-      '笔记': ['复习', '学习', '教程'],
-      '前端': ['前端开发', 'frontend', 'web开发'],
-      '前端开发': ['前端', 'frontend', 'web开发']
-    };
-
     // 检查直接匹配
     if (word1 === word2) return true;
-    
-    // 检查同义词匹配
-    const word1Synonyms = synonyms[word1] || [];
-    const word2Synonyms = synonyms[word2] || [];
-    
+
+    // 类型安全的同义词检查
+    const getSynonyms = (word: string): readonly string[] => {
+      return this.synonymsMap[word] ?? [];
+    };
+
+    const word1Synonyms = getSynonyms(word1);
+    const word2Synonyms = getSynonyms(word2);
+
     return word1Synonyms.includes(word2) || word2Synonyms.includes(word1);
   }
 
@@ -112,7 +117,7 @@ export class ArticleSearchTool {
     const titleKeywords = this.extractKeywords(article.title);
     const contentKeywords = this.extractKeywords(article.content);
     const labelKeywords = this.extractKeywords(article.introduction.label);
-    
+
     // 合并文章所有关键词（用于未来扩展）
     // const allArticleKeywords = [
     //   ...titleKeywords,
@@ -123,12 +128,12 @@ export class ArticleSearchTool {
     let score = 0;
     const matchedKeywords: string[] = [];
 
-      // 计算匹配度
+    // 计算匹配度
     queryKeywords.forEach(queryWord => {
       let matched = false;
-      
+
       // 标题匹配权重最高
-      if (titleKeywords.some(titleWord => 
+      if (titleKeywords.some(titleWord =>
         titleWord.includes(queryWord) || queryWord.includes(titleWord) ||
         this.isSimilarWord(queryWord, titleWord)
       )) {
@@ -137,7 +142,7 @@ export class ArticleSearchTool {
         matched = true;
       }
       // 标签匹配权重中等
-      else if (labelKeywords.some(labelWord => 
+      else if (labelKeywords.some(labelWord =>
         labelWord.includes(queryWord) || queryWord.includes(labelWord) ||
         this.isSimilarWord(queryWord, labelWord)
       )) {
@@ -146,7 +151,7 @@ export class ArticleSearchTool {
         matched = true;
       }
       // 内容匹配权重较低
-      else if (contentKeywords.some(contentWord => 
+      else if (contentKeywords.some(contentWord =>
         contentWord.includes(queryWord) || queryWord.includes(contentWord) ||
         this.isSimilarWord(queryWord, contentWord)
       )) {
@@ -154,7 +159,7 @@ export class ArticleSearchTool {
         matchedKeywords.push(queryWord);
         matched = true;
       }
-      
+
       console.log(`[ArticleSearchTool] 关键词匹配检查: "${queryWord}"`, {
         titleKeywords: titleKeywords.slice(0, 5),
         labelKeywords: labelKeywords.slice(0, 5),
@@ -193,13 +198,13 @@ export class ArticleSearchTool {
 
     const results: ArticleSearchResult[] = [];
     const queryKeywords = this.extractKeywords(query);
-    
+
     console.log('[ArticleSearchTool] 提取的查询关键词:', queryKeywords);
 
     // 为每篇文章计算相关性分数
     this.articles.forEach((article, index) => {
       const { score, matchedKeywords } = this.calculateSimilarity(query, article);
-      
+
       console.log(`[ArticleSearchTool] 文章 ${index + 1} 分析:`, {
         title: article.title,
         label: article.introduction?.label,
@@ -208,7 +213,7 @@ export class ArticleSearchTool {
         threshold: 0.05,
         willInclude: score > 0.05
       });
-      
+
       // 只返回有一定相关性的文章（阈值可调整）
       if (score > 0.05) {
         results.push({
@@ -244,10 +249,10 @@ export class ArticleSearchTool {
     }
 
     let formattedText = '\n\n📚 **相关文章推荐**：\n\n';
-    
+
     searchResults.forEach((result, index) => {
       const { article, relevanceScore, matchedKeywords } = result;
-      
+
       formattedText += `${index + 1}. **${article.title}**\n`;
       formattedText += `   📝 ${article.introduction.label}\n`;
       formattedText += `   👤 作者：${article.introduction.author}\n`;
@@ -273,12 +278,12 @@ export class ArticleSearchTool {
     ];
 
     const lowerQuery = query.toLowerCase();
-    
+
     // 检查直接匹配
-    const directMatches = searchTriggers.filter(trigger => 
+    const directMatches = searchTriggers.filter(trigger =>
       lowerQuery.includes(trigger)
     );
-    
+
     // 检查模式匹配
     const patterns = [
       /.*文章.*/, // 包含"文章"
@@ -291,17 +296,17 @@ export class ArticleSearchTool {
       /.*查询.*/, // 包含"查询"
       /.*推荐.*/, // 包含"推荐"
     ];
-    
+
     const patternMatches = patterns.filter(pattern => pattern.test(lowerQuery));
-    
+
     // 如果查询长度较长且包含问号或疑问词，也触发搜索
-    const isQuestion = lowerQuery.includes('?') || lowerQuery.includes('？') || 
-                      lowerQuery.includes('什么') || lowerQuery.includes('如何') || 
-                      lowerQuery.includes('怎么');
-    
-    const shouldSearch = directMatches.length > 0 || patternMatches.length > 0 || 
-                        (isQuestion && lowerQuery.length > 10);
-    
+    const isQuestion = lowerQuery.includes('?') || lowerQuery.includes('？') ||
+      lowerQuery.includes('什么') || lowerQuery.includes('如何') ||
+      lowerQuery.includes('怎么');
+
+    const shouldSearch = directMatches.length > 0 || patternMatches.length > 0 ||
+      (isQuestion && lowerQuery.length > 10);
+
     console.log('[ArticleSearchTool] 检查是否需要搜索:', {
       query: query.substring(0, 100),
       lowerQuery: lowerQuery.substring(0, 100),
@@ -310,7 +315,7 @@ export class ArticleSearchTool {
       isQuestion,
       shouldSearch
     });
-    
+
     return shouldSearch;
   }
 }
