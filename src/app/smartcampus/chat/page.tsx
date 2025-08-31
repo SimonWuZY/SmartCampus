@@ -5,7 +5,7 @@ import { useXAgent, useXChat } from '@ant-design/x';
 import { Flex } from 'antd';
 import React, { useState, useEffect } from 'react';
 import CenteredProps from "./center-props";
-import ChatMessages from "./chat-message";
+import EnhancedChatMessages from "@/components/enhanced-chat-message";
 import ChatInput from "./chat-input";
 import { ChatNavBar } from "./chat-navbar";
 
@@ -98,7 +98,7 @@ const ChatPage = () => {
             <Flex vertical gap="middle" className={`flex-1 ${isCentered ? 'justify-center' : 'justify-start'}`}>
                 {isCentered && <CenteredProps onPromptClick={handlePromptClick} />}
                 {/* 条件渲染 CenteredMessage 组件 */}
-                {!isCentered && <ChatMessages messages={messages} />}
+                {!isCentered && <EnhancedChatMessages messages={messages} />}
                 <ChatInput
                     content={content}
                     isCentered={isCentered}

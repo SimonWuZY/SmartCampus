@@ -1,6 +1,8 @@
 import { getDefaultLLMConfig, knowledgeBase, detectTopic } from './llm-config';
 import { debugLog } from './env';
 import { DeepSeekProvider, createDeepSeekConfig } from './ai-providers-simple';
+import { ArticleSearchTool, ArticleSearchResult } from './article-search-tool';
+import { articleService } from './article-service';
 
 // 对话历史接口
 export interface ConversationEntry {
@@ -25,6 +27,7 @@ export class LocalLLMService {
   private conversationHistory: ConversationEntry[] = [];
   private requestCount = 0;
   private aiProvider: DeepSeekProvider | null = null;
+  private articleSearchTool: ArticleSearchTool = new ArticleSearchTool();
 
   private responses: Record<string, string[]> = {
     greeting: [
@@ -71,7 +74,7 @@ export class LocalLLMService {
     }
   }
 
-  private buildSystemPrompt(topic: string): string {
+  private buildSystemPrompt(topic: string, hasArticleRecommendations: boolean = false): string {
     const basePrompt = `你是一个专业的AI助手，专注于提供高质量、准确、有用的回答。
 
 当前对话主题: ${topic}
@@ -82,10 +85,68 @@ export class LocalLLMService {
 3. 根据问题的复杂程度调整回答的详细程度
 4. 如果不确定答案，请诚实说明
 5. 使用中文回答，除非用户特别要求其他语言
+${hasArticleRecommendations ? '6. 当我为你提供相关文章推荐时，请在回答中自然地引用这些文章，并鼓励用户查看' : ''}
 
 ${knowledgeBase.contexts[topic] || knowledgeBase.contexts.general}`;
 
     return basePrompt;
+  }
+
+  // 搜索相关文章
+  private async searchRelevantArticles(query: string): Promise<ArticleSearchResult[]> {
+    console.log('[LLMService] 开始文章检索流程', { query: query.substring(0, 100) });
+    
+    try {
+      // 检查是否需要搜索文章
+      const shouldSearch = this.articleSearchTool.shouldSearchArticles(query);
+      console.log('[LLMService] 检查是否需要搜索文章:', { shouldSearch, query: query.substring(0, 50) });
+      
+      if (!shouldSearch) {
+        console.log('[LLMService] 查询不需要文章搜索，跳过');
+        return [];
+      }
+
+      console.log('[LLMService] 开始获取文章数据...');
+      // 获取最新文章数据
+      const articles = await articleService.getAllArticles();
+      console.log('[LLMService] 获取到文章数据:', { count: articles.length });
+      
+      // 更新搜索工具的文章数据
+      this.articleSearchTool.updateArticles(articles);
+      console.log('[LLMService] 已更新搜索工具的文章数据');
+      
+      // 搜索相关文章
+      console.log('[LLMService] 开始执行文章搜索...');
+      const searchResults = this.articleSearchTool.searchRelevantArticles(query, 3);
+      
+      console.log('[LLMService] 文章搜索完成', {
+        query: query.substring(0, 50),
+        totalArticles: articles.length,
+        foundResults: searchResults.length,
+        results: searchResults.map(r => ({
+          title: r.article.title,
+          score: r.relevanceScore.toFixed(3),
+          keywords: r.matchedKeywords
+        }))
+      });
+
+      debugLog('Article search completed', {
+        query: query.substring(0, 50),
+        totalArticles: articles.length,
+        foundResults: searchResults.length,
+        results: searchResults.map(r => ({
+          title: r.article.title,
+          score: r.relevanceScore,
+          keywords: r.matchedKeywords
+        }))
+      });
+
+      return searchResults;
+    } catch (error) {
+      console.error('[LLMService] 文章搜索失败:', error);
+      debugLog('Article search failed', error instanceof Error ? error : String(error));
+      return [];
+    }
   }
 
   private async generateAIResponse(query: string, topic: string): Promise<string> {
@@ -95,7 +156,11 @@ ${knowledgeBase.contexts[topic] || knowledgeBase.contexts.general}`;
       throw new Error('AI provider not available');
     }
 
-    const systemPrompt = this.buildSystemPrompt(topic);
+    // 搜索相关文章
+    const articleResults = await this.searchRelevantArticles(query);
+    const hasArticleRecommendations = articleResults.length > 0;
+
+    const systemPrompt = this.buildSystemPrompt(topic, hasArticleRecommendations);
 
     // 构建对话历史（最近5条）
     const recentHistory = this.conversationHistory.slice(-5);
@@ -111,13 +176,25 @@ ${knowledgeBase.contexts[topic] || knowledgeBase.contexts.general}`;
       );
     }
 
+    // 如果有相关文章，在用户问题前添加文章信息
+    let enhancedQuery = query;
+    if (hasArticleRecommendations) {
+      const articleInfo = articleResults.map(result => 
+        `文章：《${result.article.title}》- ${result.article.introduction.label} (相关度: ${Math.round(result.relevanceScore * 100)}%)`
+      ).join('\n');
+      
+      enhancedQuery = `用户问题：${query}\n\n我找到了以下相关文章：\n${articleInfo}\n\n请结合这些文章信息来回答用户的问题，并在回答末尾推荐这些文章。`;
+    }
+
     // 添加当前问题
-    messages.push({ role: 'user', content: query });
+    messages.push({ role: 'user', content: enhancedQuery });
 
     debugLog('Generating AI response', {
       topic,
       messageCount: messages.length,
-      query: query.substring(0, 100)
+      query: query.substring(0, 100),
+      hasArticleRecommendations,
+      articleCount: articleResults.length
     });
 
     const response = await this.aiProvider.generateResponse(messages);
@@ -128,10 +205,17 @@ ${knowledgeBase.contexts[topic] || knowledgeBase.contexts.general}`;
       model: response.model
     });
 
-    return response.content;
+    // 如果有文章推荐，添加格式化的文章链接
+    let finalResponse = response.content;
+    if (hasArticleRecommendations) {
+      const formattedRecommendations = this.articleSearchTool.formatArticleRecommendations(articleResults);
+      finalResponse += formattedRecommendations;
+    }
+
+    return finalResponse;
   }
 
-  private getDetailedResponse(query: string, topic: string): string {
+  private async getDetailedResponse(query: string, topic: string): Promise<string> {
     const responses = this.responses[topic] || this.responses.general;
     const baseResponse = responses[Math.floor(Math.random() * responses.length)];
     const contextInfo = knowledgeBase.contexts[topic] || knowledgeBase.contexts.general;
@@ -157,6 +241,17 @@ ${knowledgeBase.contexts[topic] || knowledgeBase.contexts.general}`;
       }
 
       detailedResponse += `如果你需要更具体的指导或有其他相关问题，请随时告诉我！我会根据你的具体情况提供更有针对性的建议。`;
+    }
+
+    // 尝试添加文章推荐（即使在模板回答中）
+    try {
+      const articleResults = await this.searchRelevantArticles(query);
+      if (articleResults.length > 0) {
+        const formattedRecommendations = this.articleSearchTool.formatArticleRecommendations(articleResults);
+        detailedResponse += formattedRecommendations;
+      }
+    } catch (error) {
+      debugLog('Failed to add article recommendations to template response', error instanceof Error ? error : String(error));
     }
 
     return detailedResponse;
@@ -222,7 +317,7 @@ ${knowledgeBase.contexts[topic] || knowledgeBase.contexts.general}`;
     } catch (aiError) {
       debugLog('AI generation failed, falling back to template', aiError instanceof Error ? aiError : String(aiError));
       // 如果 AI 调用失败，回退到模板回答
-      reply = this.getDetailedResponse(query, topic);
+      reply = await this.getDetailedResponse(query, topic);
     }
 
     const processingTime = Date.now() - startTime;
