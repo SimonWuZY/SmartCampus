@@ -15,7 +15,7 @@ export const DocumentRow = ({ document }: DocumentRowProps) => {
 
     return (
         <TableRow
-            onClick={() => router.push(`/documents/${document._id}`)}
+            onClick={() => router.push(`/smartcampus/documents/${document._id}`)}
             className="cursor-pointer"
         >
             <TableCell className="w-[50]px">
@@ -38,7 +38,7 @@ export const DocumentRow = ({ document }: DocumentRowProps) => {
                 <DocumentMenu
                     documentId={document._id}
                     title={document.title}
-                    onNewTab={() => window.open(`/documents/${document._id}`, "_blank")}
+                    onNewTab={() => window.open(`/smartcampus/documents/${document._id}`, "_blank")}
                 />
             </TableCell>
         </TableRow>

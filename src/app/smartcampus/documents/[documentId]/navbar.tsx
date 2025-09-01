@@ -63,7 +63,7 @@ export const NavBar = ({ data }: NavBarProps) => {
         })
             .then((id) => {
                 toast.success("新文档创建成功");
-                router.push(`/documents/${id}`);
+                router.push(`/smartcampus/documents/${id}`);
             })
             .catch(() => toast.error("文档创建失败"));
     }
