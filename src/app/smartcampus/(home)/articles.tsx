@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThumbsUp, MessageCircle } from 'lucide-react';
 import { ArticleProps } from '@/constants/interfaces';
-import { SideNavigatar } from './side-navigatar';
+// import { SideNavigatar } from './side-navigatar';
 
 const ArticleCard: React.FC<{ article: ArticleProps }> = ({ article }) => {
     const router = useRouter();
@@ -48,9 +48,9 @@ const ArticlesOverview: React.FC<{ articles?: ArticleProps[] }> = ({ articles })
     return (
         <div className="relative w-full min-h-screen flex flex-row">
             {/* 左侧导航栏 */}
-            <div className="sticky top-4 h-screen flex items-center justify-center w-32">
+            {/* <div className="sticky top-4 h-screen flex items-center justify-center w-32">
                 <SideNavigatar />
-            </div>
+            </div> */}
 
             {/* 中间文章区域 */}
             <div className="flex-1 flex flex-col gap-4 px-8">
@@ -64,9 +64,9 @@ const ArticlesOverview: React.FC<{ articles?: ArticleProps[] }> = ({ articles })
             </div>
 
             {/* 右侧导航栏 */}
-            <div className="sticky top-4 h-screen flex items-center justify-center w-32">
+            {/* <div className="sticky top-4 h-screen flex items-center justify-center w-32">
                 <SideNavigatar />
-            </div>
+            </div> */}
         </div>
     );
 };
