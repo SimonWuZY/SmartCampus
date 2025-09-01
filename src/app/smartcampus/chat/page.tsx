@@ -3,7 +3,7 @@
 import BottomNavBar from "@/components/bottom-narbar";
 import { useXAgent, useXChat } from '@ant-design/x';
 import { Flex } from 'antd';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import CenteredProps from "./center-props";
 import EnhancedChatMessages from "@/components/enhanced-chat-message";
 import ChatInput from "./chat-input";
@@ -14,54 +14,92 @@ import RootNavBar from "@/components/rootNavbar";
 const ChatPage = () => {
     const [content, setContent] = useState('');
     const [isCentered, setIsCentered] = useState(true);
+    
+    // 当前消息内容引用
+    const currentMessageRef = useRef<string>('');
 
-    // 本地 LLM 服务
+    // 获取基础 URL
+    const getBaseUrl = () => {
+        if (typeof window !== 'undefined') {
+            return window.location.origin;
+        }
+        return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    };
+
+    // 本地 LLM 服务 - 使用 SSE 流式传输
     const [agent] = useXAgent({
         request: async ({ message }, { onSuccess, onUpdate, onError }) => {
             try {
-                // 使用本地 Next.js API 路由
-                const response = await fetch('/api/chat', {
+                // 重置当前消息
+                currentMessageRef.current = '';
+
+                // 发送 POST 请求到流式端点
+                const response = await fetch(`${getBaseUrl()}/api/chat-stream`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ query: message }),
+                    body: JSON.stringify({ query: message })
                 });
 
                 if (!response.ok) {
                     throw new Error(`服务响应错误: ${response.status}`);
                 }
 
-                const data = await response.json();
-                console.log('LLM 响应:', {
-                    topic: data.topic,
-                    confidence: data.confidence,
-                    timestamp: data.timestamp
-                });
+                // 处理流式响应
+                const reader = response.body?.getReader();
+                const decoder = new TextDecoder();
 
-                const fullContent = data.reply;
-                let currentContent = '';
+                if (!reader) {
+                    throw new Error('无法获取响应流');
+                }
 
-                // 优化的打字机效果
-                const typingSpeed = 30; // 更快的打字速度
-                const charsPerStep = Math.max(1, Math.floor(fullContent.length / 100)); // 动态调整每步字符数
+                while (true) {
+                    const { done, value } = await reader.read();
+                    
+                    if (done) break;
 
-                const id = setInterval(() => {
-                    const nextLength = Math.min(
-                        fullContent.length,
-                        currentContent.length + charsPerStep
-                    );
-                    currentContent = fullContent.slice(0, nextLength);
-                    onUpdate(currentContent);
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
 
-                    if (currentContent === fullContent) {
-                        clearInterval(id);
-                        onSuccess(fullContent);
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                
+                                switch (data.type) {
+                                    case 'start':
+                                        currentMessageRef.current = '';
+                                        break;
+                                        
+                                    case 'chunk':
+                                        if (data.content) {
+                                            currentMessageRef.current += data.content;
+                                            onUpdate(currentMessageRef.current);
+                                        }
+                                        break;
+                                        
+                                    case 'end':
+                                        console.log('LLM 流式响应完成:', {
+                                            topic: data.metadata?.topic,
+                                            confidence: data.metadata?.confidence,
+                                            processingTime: data.metadata?.processingTime
+                                        });
+                                        onSuccess(currentMessageRef.current);
+                                        return; // 完成，退出函数
+                                        
+                                    case 'error':
+                                        throw new Error(data.content || '服务器错误');
+                                }
+                            } catch (parseError) {
+                                console.error('解析 SSE 数据失败:', parseError);
+                            }
+                        }
                     }
-                }, typingSpeed);
+                }
 
             } catch (error) {
-                console.error('本地 LLM 服务错误:', error);
+                console.error('SSE 流式传输错误:', error);
                 const errorMessage = error instanceof Error
                     ? `服务错误: ${error.message}`
                     : '抱歉，服务暂时不可用，请稍后再试。';
