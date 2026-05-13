@@ -10,7 +10,11 @@ const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export function ConvexClientProvider({ children }: { children: ReactNode }) {
     return (
-        <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
+        <ClerkProvider
+            publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+            signInFallbackRedirectUrl="/smartcampus/chat"
+            signUpFallbackRedirectUrl="/smartcampus/chat"
+        >
             <ConvexProviderWithClerk
                 useAuth={useAuth}
                 client={convex}
@@ -20,7 +24,11 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
                 </Authenticated>
                 <Unauthenticated>
                     <div className="flex flex-col items-center justify-center min-h-screen">
-                        <SignIn routing="hash" />
+                        <SignIn
+                            routing="hash"
+                            fallbackRedirectUrl="/smartcampus/chat"
+                            signUpFallbackRedirectUrl="/smartcampus/chat"
+                        />
                     </div>
                 </Unauthenticated>
                 <AuthLoading>

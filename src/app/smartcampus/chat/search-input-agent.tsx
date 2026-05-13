@@ -6,7 +6,7 @@ import { SearchIcon, XIcon } from "lucide-react"
 import { useSearchParam } from "@/hooks/use-search-param"
 import { useRef, useState } from "react"
 
-export const SearchInput = () => {
+export const SearchInputAgent = () => {
     const [search, setSearch] = useSearchParam("search");
     const [value, setValue] = useState(search);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +37,7 @@ export const SearchInput = () => {
                     value={value}
                     onChange={handleChange}
                     ref={inputRef}
-                    placeholder="搜索文档"
+                    placeholder="搜索智能体聊天记录"
                     className="md:text-base placeholder:text-neutral-800 px-14 w-full border-none focus-visible:shadow-[0_1px_1px_0_rgba(65,69,73,.3),0_1px_3px_1px_rgba(65,69,73,.15)] bg-[#F0F4F8] rounded-full h-[48px] focus-visible:ring-0 focus:bg-white"
                 />
                 <Button

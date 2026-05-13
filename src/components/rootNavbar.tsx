@@ -2,9 +2,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { UserButton, OrganizationSwitcher } from "@clerk/nextjs";
-import { SearchInputArticles } from "@/app/smartcampus/(home)/search-input-articles";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { NavList } from "@/components/navList";
+import { NavList, NavSearchSlot } from "@/components/navList";
 import { NavListProps } from "@/constants/interfaces";
 
 const RootNavBar = ({searchItem}: NavListProps) => {
@@ -12,18 +11,21 @@ const RootNavBar = ({searchItem}: NavListProps) => {
     if (isMobile) {
         return (
             <div className="flex items-center justify-between h-full w-full">
-                <SearchInputArticles />
-                <div className="flex gap-3 items-center pl-6">
+                <div className="min-w-0 flex-1 mr-2">
+                    <NavSearchSlot searchItem={searchItem} />
+                </div>
+                <div className="flex gap-3 items-center pl-6 shrink-0">
                     <UserButton />
                 </div>
                 {/* 标签 */}
-            </div>);
+            </div>
+        );
     }
 
     return (
         <nav className="flex items-center justify-between h-full w-full">
             <div className="flex gap-3 items-center shrink-0 pr-6">
-                <Link href="/">
+                <Link href="/smartcampus/chat">
                     <Image src="/logo.svg" alt="Logo" width={64} height={64} />
                 </Link>
                 <h3 className="text-xl">智合校园</h3>
@@ -34,10 +36,10 @@ const RootNavBar = ({searchItem}: NavListProps) => {
 
             <div className="flex gap-3 items-center pl-6">
                 <OrganizationSwitcher
-                    afterCreateOrganizationUrl="/"
-                    afterLeaveOrganizationUrl="/"
-                    afterSelectOrganizationUrl="/"
-                    afterSelectPersonalUrl="/"
+                    afterCreateOrganizationUrl="/smartcampus/chat"
+                    afterLeaveOrganizationUrl="/smartcampus/chat"
+                    afterSelectOrganizationUrl="/smartcampus/chat"
+                    afterSelectPersonalUrl="/smartcampus/chat"
                 />
                 <UserButton />
             </div>

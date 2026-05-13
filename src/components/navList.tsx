@@ -1,36 +1,29 @@
-import { SearchInputArticles } from "@/app/smartcampus/(home)/search-input-articles";
-import { SearchInput } from "@/app/smartcampus/documents/search-input";
-import ChatInput from "@/app/smartcampus/chat/chat-input";
+import { SearchInputDocs } from "@/app/smartcampus/documents/search-input-docs";
+import { SearchInputAgent } from "@/app/smartcampus/chat/search-input-agent";
 import {
-    NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle,
+    NavigationMenu,
+    NavigationMenuItem,
+    NavigationMenuLink,
+    NavigationMenuList,
+    navigationMenuTriggerStyle,
 } from "./ui/navigation-menu";
 import Link from "next/link";
 import { NavListEnum, NavListProps } from "@/constants/interfaces";
 
-// 渲染搜索组件的函数
-const renderSearchComponent = (searchItem: NavListEnum) => {
+export function NavSearchSlot({ searchItem }: Pick<NavListProps, "searchItem">) {
     switch (searchItem) {
-        case NavListEnum.ARTICLES:
-            return <SearchInputArticles />;
         case NavListEnum.DOCUMENTS:
-            return <SearchInput />;
+            return <SearchInputDocs />;
         case NavListEnum.CHAT:
-            return (
-                <ChatInput
-                    content=""
-                    isCentered={false}
-                    agent={{ isRequesting: () => false }}
-                    onRequest={() => {}}
-                    setContent={() => {}}
-                />
-            );
-        default:
-            return <SearchInputArticles />;
+            return <SearchInputAgent />;
+        default: {
+            const _exhaustive: never = searchItem;
+            return _exhaustive;
+        }
     }
-};
+}
 
-export const NavList = ({searchItem}: NavListProps) => {
-
+export const NavList = ({ searchItem }: NavListProps) => {
     return (
         <div className="flex">
             <NavigationMenu>
@@ -43,18 +36,12 @@ export const NavList = ({searchItem}: NavListProps) => {
                     </NavigationMenuItem>
                     <NavigationMenuItem>
                         <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                            <Link href="/smartcampus">文章推送</Link>
-                        </NavigationMenuLink>
-                    </NavigationMenuItem>
-                    <NavigationMenuItem>
-                        <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
                             <Link href="/smartcampus/chat">智能助手</Link>
                         </NavigationMenuLink>
                     </NavigationMenuItem>
                 </NavigationMenuList>
-
             </NavigationMenu>
-            {renderSearchComponent(searchItem)}
+            <NavSearchSlot searchItem={searchItem} />
         </div>
-    )
-}
+    );
+};

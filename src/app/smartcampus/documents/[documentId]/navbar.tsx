@@ -120,7 +120,7 @@ export const NavBar = ({ data }: NavBarProps) => {
     return (
         <nav className="flex items-center justify-between">
             <div className="flex gap-2 items-center">
-                <Link href="/">
+                <Link href="/smartcampus/chat">
                     <Image src="/logo.svg" alt="Logo" width={64} height={64} />
                 </Link>
                 <div className="flex flex-col">
@@ -271,10 +271,10 @@ export const NavBar = ({ data }: NavBarProps) => {
                 <Avatars />
                 <Inbox />
                 <OrganizationSwitcher
-                    afterCreateOrganizationUrl="/"
-                    afterLeaveOrganizationUrl="/"
-                    afterSelectOrganizationUrl="/"
-                    afterSelectPersonalUrl="/"
+                    afterCreateOrganizationUrl="/smartcampus/chat"
+                    afterLeaveOrganizationUrl="/smartcampus/chat"
+                    afterSelectOrganizationUrl="/smartcampus/chat"
+                    afterSelectPersonalUrl="/smartcampus/chat"
                 />
                 <UserButton />
             </div>

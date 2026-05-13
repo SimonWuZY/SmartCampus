@@ -7,7 +7,8 @@ import React, { useState, useEffect } from 'react';
 import CenteredProps from "./center-props";
 import ChatMessages from "./chat-message";
 import ChatInput from "./chat-input";
-import { ChatNavBar } from "./chat-navbar";
+import { NavListEnum } from "@/constants/interfaces";
+import RootNavBar from "@/components/rootNavbar";
 
 const ChatPage = () => {
     const [content, setContent] = useState('');
@@ -69,8 +70,8 @@ const ChatPage = () => {
 
     return (
         <div className="h-screen flex flex-col">
-            <div>
-                <ChatNavBar />
+            <div className="fixed top-0 left-0 right-0 z-10 h-16 bg-white p-4">
+                <RootNavBar searchItem={NavListEnum.CHAT}></RootNavBar>
             </div>
             <Flex vertical gap="middle" className={`flex-1 ${isCentered ? 'justify-center' : 'justify-start'}`}>
                 {isCentered && <CenteredProps onPromptClick={handlePromptClick} />}
