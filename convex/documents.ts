@@ -162,3 +162,55 @@ export const getDocumentById = query({
         return document;
     },
 });
+
+/**
+ * 将智能助手生成的纯文本整理为最小 TipTap JSON 并新建文档（不修改原文 JSON，避免破坏 Liveblocks 协同内容）。
+ */
+export const createAssistantWriteupDocument = mutation({
+    args: {
+        title: v.string(),
+        plainBody: v.string(),
+    },
+    handler: async (ctx, { title, plainBody }) => {
+        const user = await ctx.auth.getUserIdentity();
+
+        if (!user) {
+            throw new ConvexError("Unauthorized");
+        }
+
+        const organizationId = (user.organization_id ?? undefined) as
+            | string
+            | undefined;
+
+        const chunks = plainBody.slice(0, 60_000).split(/\n\n+/);
+        const paragraphs =
+            chunks.length > 0
+                ? chunks.map((text) => ({
+                      type: "paragraph" as const,
+                      content: [
+                          {
+                              type: "text" as const,
+                              text: text.replace(/\n+/g, " ").slice(0, 12_000),
+                          },
+                      ],
+                  }))
+                : [
+                      {
+                          type: "paragraph" as const,
+                          content: [{ type: "text" as const, text: "(无内容)" }],
+                      },
+                  ];
+
+        const tipTapJson = JSON.stringify({
+            type: "doc",
+            content: paragraphs,
+        });
+
+        return await ctx.db.insert("documents", {
+            title: title.slice(0, 200),
+            ownerId: user.subject,
+            organizationId,
+            initialContent: tipTapJson,
+        });
+    },
+});

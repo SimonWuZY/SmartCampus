@@ -26,6 +26,22 @@ export default defineSchema({
         }),
         cover: v.optional(v.string()),
         content: v.string(),
-    })
+    }),
+
+    /** 智能助手会话（按用户 / 组织隔离） */
+    chatConversations: defineTable({
+        ownerId: v.string(),
+        organizationId: v.optional(v.string()),
+        title: v.string(),
+        updatedAt: v.number(),
+    }).index("by_owner_updated", ["ownerId", "updatedAt"]),
+
+    /** 会话内消息（用户与助手 Markdown 正文） */
+    chatMessages: defineTable({
+        conversationId: v.id("chatConversations"),
+        role: v.union(v.literal("user"), v.literal("assistant")),
+        content: v.string(),
+        createdAt: v.number(),
+    }).index("by_conversation_created", ["conversationId", "createdAt"]),
 });
 

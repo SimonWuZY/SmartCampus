@@ -1,16 +1,17 @@
-import React from 'react';
-import { Bubble } from '@ant-design/x';
-import { UserOutlined } from '@ant-design/icons';
-import { type GetProp } from 'antd';
+import React from "react";
+import { Bubble } from "@ant-design/x";
+import { UserOutlined } from "@ant-design/icons";
+import { type GetProp } from "antd";
+import ReactMarkdown from "react-markdown";
 
-const roles: GetProp<typeof Bubble.List, 'roles'> = {
+const roles: GetProp<typeof Bubble.List, "roles"> = {
     ai: {
-        placement: 'start',
-        avatar: { icon: <UserOutlined />, style: { background: '#fde3cf' } },
+        placement: "start",
+        avatar: { icon: <UserOutlined />, style: { background: "#fde3cf" } },
     },
     local: {
-        placement: 'end',
-        avatar: { icon: <UserOutlined />, style: { background: '#87d068' } },
+        placement: "end",
+        avatar: { icon: <UserOutlined />, style: { background: "#87d068" } },
     },
 };
 
@@ -22,8 +23,15 @@ const ChatMessages: React.FC<{ messages: any[] }> = ({ messages }) => {
             className="flex-1 overflow-y-auto p-4"
             items={messages.map(({ id, message, status }) => ({
                 key: id,
-                role: status === 'local' ? 'local' : 'ai',
-                content: message,
+                role: status === "local" ? "local" : "ai",
+                content:
+                    status === "local" ? (
+                        message
+                    ) : (
+                        <div className="max-w-none text-left text-sm [&_pre]:overflow-x-auto [&_p]:my-1 [&_ul]:my-1">
+                            <ReactMarkdown>{String(message ?? "")}</ReactMarkdown>
+                        </div>
+                    ),
             }))}
         />
     );
